@@ -1,5 +1,7 @@
 import React from 'react';
 import { useTheme } from '@context/ThemeContext';
+import { Sun, Moon } from 'lucide-react'; // Using Lucide for consistent icon weight
+import { cn } from '@utils/cn';
 
 export const ThemeToggle: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -7,18 +9,34 @@ export const ThemeToggle: React.FC = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+      className={cn(
+        // Using SHAMS palette for background and interaction
+        "relative p-2.5 rounded-xl transition-all duration-300 group",
+        "bg-neutral-bg dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700",
+        "border border-gray-200 dark:border-gray-700 shadow-sm active:scale-90"
+      )}
       aria-label="Toggle theme"
     >
-      {theme === 'light' ? (
-        <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-        </svg>
-      ) : (
-        <svg className="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      )}
+      <div className="relative w-5 h-5 overflow-hidden">
+        {/* Sun Icon - For switching to Light mode */}
+        <div className={cn(
+          "absolute inset-0 transition-transform duration-500",
+          theme === 'light' ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+        )}>
+          <Sun className="w-5 h-5 text-accent group-hover:rotate-45 transition-transform duration-500" />
+        </div>
+
+        {/* Moon Icon - For switching to Dark mode */}
+        <div className={cn(
+          "absolute inset-0 transition-transform duration-500",
+          theme === 'dark' ? "translate-y-0 opacity-100" : "-translate-y-8 opacity-0"
+        )}>
+          <Moon className="w-5 h-5 text-primary" />
+        </div>
+      </div>
+
+      {/* Subtle Glow Effect on Hover */}
+      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-10 dark:group-hover:opacity-20 bg-primary transition-opacity" />
     </button>
   );
 };

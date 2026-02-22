@@ -69,32 +69,60 @@ export const DashboardLayout: React.FC = () => {
 
   const currentMenu = user ? menuItems[user.role] : [];
 
+// 1. Define the Theme Mapping based on your Palette guidelines
+  const roleThemes: Record<string, { sidebar: string; header: string; active: string; text: string; subtext: string }> = {
+    PATIENT: {
+      sidebar: 'bg-[#0D47A1]', // Deep Navy
+      header: 'bg-[#1976D2]',  // Primary Blue
+      active: 'bg-[#1976D2]',  // Primary Blue
+      text: 'text-white',
+      subtext: 'text-blue-100'
+    },
+    DOCTOR: {
+      sidebar: 'bg-[#004D40]', // Dark Teal
+      header: 'bg-[#26A69A]',  // Soft Teal
+      active: 'bg-[#26A69A]',  // Soft Teal
+      text: 'text-white',
+      subtext: 'text-teal-50'
+    },
+    ADMIN: {
+      sidebar: 'bg-[#1A1A1A]', // Neutral Dark
+      header: 'bg-[#0D47A1]',  // Deep Navy
+      active: 'bg-[#0D47A1]',  // Deep Navy
+      text: 'text-white',
+      subtext: 'text-gray-300'
+    }
+  };
+
+  const theme = roleThemes[user?.role || 'PATIENT'];
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex flex-col bg-linear-to-b from-gray-900 to-gray-800 text-white transition-all duration-300',
+          'fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 shadow-2xl',
+          theme.sidebar, // DYNAMIC SIDEBAR COLOR
           sidebarOpen ? 'w-64' : 'w-20',
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+        <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500 rounded-lg">
+            <div className="p-2 bg-white/10 rounded-lg backdrop-blur-md">
               <Activity className="w-6 h-6 text-white" />
             </div>
-            {sidebarOpen && <span className="text-xl font-bold">SHAMS</span>}
+            {sidebarOpen && <span className="text-xl font-bold tracking-tight text-white">SHAMS</span>}
           </div>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors hidden lg:block"
+            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors hidden lg:block"
           >
             {sidebarOpen ? (
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5 text-white/70" />
             ) : (
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-5 h-5 text-white/70" />
             )}
           </button>
         </div>
@@ -111,13 +139,21 @@ export const DashboardLayout: React.FC = () => {
                   setMobileMenuOpen(false);
                 }}
                 className={cn(
-                  'w-full flex items-center gap-4 px-4 py-3 transition-all',
+                  'w-full flex items-center gap-4 px-4 py-3 transition-all relative group',
                   isActive
-                    ? 'bg-blue-500/20 border-r-4 border-blue-500 text-white'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                    ? `${theme.active} text-white shadow-lg` // DYNAMIC ACTIVE BUTTON
+                    : 'text-white/60 hover:bg-white/5 hover:text-white'
                 )}
               >
-                <item.icon className="w-6 h-6 shrink-0" />
+                {isActive && (
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-white rounded-r-full shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                )}
+                
+                <item.icon className={cn(
+                  "w-6 h-6 shrink-0 transition-colors",
+                  isActive ? "text-white" : "text-white/50 group-hover:text-white"
+                )} />
+                
                 {sidebarOpen && <span className="font-semibold">{item.label}</span>}
               </button>
             );
@@ -125,12 +161,12 @@ export const DashboardLayout: React.FC = () => {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-gray-700">
+        <div className="p-4 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-all text-red-300 hover:text-white"
+            className="w-full flex items-center gap-4 px-4 py-3 bg-[#E53935]/10 hover:bg-[#E53935] rounded-xl transition-all text-[#E53935] hover:text-white group"
           >
-            <LogOut className="w-6 h-6 shrink-0" />
+            <LogOut className="w-6 h-6 shrink-0 group-hover:scale-110 transition-transform" />
             {sidebarOpen && <span className="font-semibold">Logout</span>}
           </button>
         </div>
@@ -139,23 +175,27 @@ export const DashboardLayout: React.FC = () => {
       {/* Mobile overlay */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
       {/* Main Content */}
-      <div className={cn('flex-1 flex flex-col', sidebarOpen ? 'lg:ml-64' : 'lg:ml-20')}>
+      <div className={cn('flex-1 flex flex-col min-w-0', sidebarOpen ? 'lg:ml-64' : 'lg:ml-20')}>
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <header className={cn(
+          "sticky top-0 z-30 flex items-center justify-between px-6 py-4 border-b border-black/10 shadow-sm transition-colors duration-500",
+          theme.header // DYNAMIC HEADER COLOR
+        )}>
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
+              className="p-2 rounded-lg hover:bg-white/10 lg:hidden transition-colors"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-6 h-6 text-white" />
             </button>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            
+            <h2 className="text-xl font-bold text-white">
               {user?.role === 'PATIENT' && 'Patient Portal'}
               {user?.role === 'DOCTOR' && 'Doctor Portal'}
               {user?.role === 'ADMIN' && 'Admin Portal'}
@@ -165,24 +205,24 @@ export const DashboardLayout: React.FC = () => {
           <div className="flex items-center gap-4">
             <ThemeToggle />
 
-            <button className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-              <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+            <button className="relative p-2 rounded-lg hover:bg-white/10 transition-colors">
+              <Bell className="w-5 h-5 text-white" />
+              <span className="absolute top-0 right-0 w-5 h-5 bg-[#FB8C00] text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-current">
                 3
               </span>
             </button>
 
-            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-              <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-white font-bold">
-                {user?.firstName?.charAt(0)}
-                {user?.lastName?.charAt(0)}
+            <div className="flex items-center gap-3 p-1.5 pr-3 rounded-full bg-white/10 hover:bg-white/20 cursor-pointer transition-all border border-white/10">
+              <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[#0D47A1] font-bold shadow-sm">
+                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
               </div>
+              
               <div className="hidden md:block">
-                <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                <div className="text-sm font-bold text-white leading-none">
                   {user?.firstName} {user?.lastName}
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400 capitalize">
-                  {user?.role.toLowerCase()}
+                <div className={cn("text-[10px] uppercase tracking-wider font-bold mt-1 opacity-80", theme.subtext)}>
+                  {user?.role}
                 </div>
               </div>
             </div>
@@ -190,7 +230,7 @@ export const DashboardLayout: React.FC = () => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950">
           <Outlet />
         </main>
       </div>

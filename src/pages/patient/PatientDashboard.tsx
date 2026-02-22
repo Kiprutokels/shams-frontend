@@ -7,6 +7,7 @@ import { Loader } from '@components/common/Loader/Loader';
 import { appointmentService } from '@services/api/appointment.service';
 import { userService } from '@services/api/user.service';
 import { queueService } from '@services/api/queue.service';
+import type { Appointment } from '@types';
 import {
   Calendar,
   CheckCircle,
@@ -28,17 +29,6 @@ interface DashboardStats {
   completed: number;
   upcoming: number;
   cancelled: number;
-}
-
-interface Appointment {
-  id: string;
-  appointmentDate: string;
-  status: string;
-  doctor: {
-    firstName: string;
-    lastName: string;
-    specialization: string;
-  };
 }
 
 interface QueuePosition {
@@ -75,7 +65,14 @@ export const PatientDashboard: React.FC = () => {
         cancelled: statsData.data.cancelled || 0,
       });
       setUpcomingAppointments(appointmentsData.data);
-      setQueuePosition(queueData?.data);
+      setQueuePosition(
+        queueData?.data
+          ? {
+              position: queueData.data.position,
+              estimatedWaitTime: queueData.data.estimatedWaitTime ?? 0,
+            }
+          : null
+      );
     } catch (error) {
       console.error('Failed to load dashboard:', error);
     } finally {
@@ -88,21 +85,21 @@ export const PatientDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
+    <div className="min-h-screen bg-neutral-bg dark:bg-gray-950 p-6 ">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Welcome back, {user?.firstName}!
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-neutral dark:text-gray-400">
             Manage your appointments and health records
           </p>
         </div>
         <Button
           variant="primary"
           onClick={() => navigate('/patient/book-appointment')}
-          className="mt-4 md:mt-0"
+          className="mt-4 md:mt-0 bg-primary hover:opacity-90"
         >
           <Calendar className="w-4 h-4 mr-2" />
           Book Appointment
@@ -111,10 +108,10 @@ export const PatientDashboard: React.FC = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="border-l-4 border-l-blue-500">
+        <Card className="border-l-4 border-l-primary">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-              <Calendar className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            <div className="p-3 bg-primary/20 rounded-xl">
+              <Calendar className="w-8 h-8 text-primary" />
             </div>
             <div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -127,10 +124,10 @@ export const PatientDashboard: React.FC = () => {
           </div>
         </Card>
 
-        <Card className="border-l-4 border-l-green-500">
+        <Card className="border-l-4 border-l-secondary">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
-              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+            <div className="p-3 bg-secondary/20 rounded-xl">
+              <CheckCircle className="w-8 h-8 text-secondary" />
             </div>
             <div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -143,10 +140,10 @@ export const PatientDashboard: React.FC = () => {
           </div>
         </Card>
 
-        <Card className="border-l-4 border-l-yellow-500">
+        <Card className="border-l-4 border-l-accent">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl">
-              <Clock className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
+            <div className="p-3 bg-accent/20 rounded-xl">
+              <Clock className="w-8 h-8 text-accent" />
             </div>
             <div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -159,10 +156,10 @@ export const PatientDashboard: React.FC = () => {
           </div>
         </Card>
 
-        <Card className="border-l-4 border-l-red-500">
+        <Card className="border-l-4 border-l-warmRed">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl">
-              <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
+            <div className="p-3 bg-warmRed/20 rounded-xl">
+              <XCircle className="w-8 h-8 text-warmRed" />
             </div>
             <div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -196,7 +193,7 @@ export const PatientDashboard: React.FC = () => {
                 </p>
               </div>
             </div>
-            <Button variant="primary" onClick={() => navigate('/patient/queue-status')}>
+            <Button variant="primary" className="bg-primary hover:opacity-90" onClick={() => navigate('/patient/queue-status')}>
               View Queue
             </Button>
           </div>
@@ -228,10 +225,10 @@ export const PatientDashboard: React.FC = () => {
               {upcomingAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border-2 border-transparent hover:border-blue-500 transition-all cursor-pointer"
+                  className="flex items-center gap-4 p-4 bg-neutral-bg dark:bg-gray-900 rounded-xl border-2 border-transparent hover:border-primary transition-all cursor-pointer"
                   onClick={() => navigate(`/patient/appointments/${appointment.id}`)}
                 >
-                  <div className="flex flex-col items-center justify-center w-16 h-16 gradient-primary text-white rounded-xl shrink-0">
+                  <div className="flex flex-col items-center justify-center w-16 h-16 bg-primary text-white rounded-xl shrink-0">
                     <div className="text-2xl font-bold leading-none">
                       {new Date(appointment.appointmentDate).getDate()}
                     </div>
@@ -248,7 +245,7 @@ export const PatientDashboard: React.FC = () => {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {appointment.doctor?.specialization}
                     </p>
-                    <p className="text-sm font-semibold text-blue-500">
+                    <p className="text-sm font-semibold text-primary">
                       {new Date(appointment.appointmentDate).toLocaleTimeString('en-US', {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -259,10 +256,10 @@ export const PatientDashboard: React.FC = () => {
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-bold ${
                         appointment.status === 'SCHEDULED'
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                          ? 'bg-primary/20 text-primary'
                           : appointment.status === 'CONFIRMED'
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                          ? 'bg-secondary/20 text-secondary'
+                          : 'bg-accent/20 text-accent'
                       }`}
                     >
                       {appointment.status}
@@ -309,10 +306,10 @@ export const PatientDashboard: React.FC = () => {
               <button
                 key={action.path}
                 onClick={() => navigate(action.path)}
-                className="w-full flex items-center gap-4 p-4 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all text-left"
+                className="w-full flex items-center gap-4 p-4 bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:border-primary hover:bg-neutral-bg dark:hover:bg-gray-800 transition-all text-left"
               >
-                <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-                  <action.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <action.icon className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white">{action.title}</h4>
@@ -331,27 +328,27 @@ export const PatientDashboard: React.FC = () => {
             {
               icon: Droplet,
               text: 'Drink at least 8 glasses of water daily',
-              color: 'text-blue-600',
+              color: 'text-primary',
             },
             {
               icon: Activity,
               text: 'Exercise for 30 minutes every day',
-              color: 'text-green-600',
+              color: 'text-secondary',
             },
             {
               icon: Moon,
               text: 'Get 7-8 hours of sleep each night',
-              color: 'text-purple-600',
+              color: 'text-primary',
             },
             {
               icon: Apple,
               text: 'Eat a balanced diet with fruits and vegetables',
-              color: 'text-red-600',
+              color: 'text-secondary',
             },
           ].map((tip, index) => (
             <div
               key={index}
-              className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl"
+              className="flex items-center gap-3 p-4 bg-neutral-bg dark:bg-gray-900 rounded-xl"
             >
               <tip.icon className={`w-6 h-6 ${tip.color}`} />
               <p className="text-sm text-gray-700 dark:text-gray-300">{tip.text}</p>
