@@ -85,7 +85,7 @@ export const DoctorSchedulePage: React.FC = () => {
         </div>
         <Button
           variant="primary"
-          className="mt-4 md:mt-0 bg-primary hover:opacity-90"
+          className="mt-4 md:mt-0 bg-[#1565C0] hover:opacity-90"
           onClick={() => setSelectedSlot('new')}
         >
           <Plus className="w-4 h-4 mr-2" />

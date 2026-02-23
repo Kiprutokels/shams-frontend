@@ -10,21 +10,34 @@ export default {
       colors: {
         // SHAMS System-Wide Palette
         primary: {
-          DEFAULT: '#1976D2', // Primary Blue
+          DEFAULT: '#1976D2', // Primary Blue (Trust/Professionalism)
           dark: '#1565C0',
         },
-        secondary: '#43A047', // Secondary Green
+        secondary: {
+          DEFAULT: '#43A047', // Secondary Green (Success)
+          dark: '#2E7D32',
+        },
         neutral: {
           DEFAULT: '#9E9E9E', // Subtle text, dividers
           bg: '#F5F5F5',      // App backgrounds
+          dark: '#424242',    // Stronger text
         },
-        accent: '#FB8C00',    // Accent Orange
-        navy: '#0D47A1',      // Deep Navy (Admin/Sidebar)
+        accent: {
+          DEFAULT: '#FB8C00', // Accent Orange (Warnings)
+          dark: '#EF6C00',
+        },
+        navy: {
+          DEFAULT: '#0D47A1', // Deep Navy (Admin/Sidebar)
+          dark: '#0A377D',
+        },
         teal: {
-          DEFAULT: '#26A69A', // Soft Teal (Provider highlights)
+          DEFAULT: '#26A69A', // Soft Teal (Provider Highlights)
           dark: '#004D40',    // Dark Teal (Doctor Sidebar)
         },
-        warmRed: '#E53935',   // Warm Red (Alerts/Logout)
+        warmRed: {
+          DEFAULT: '#E53935', // Warm Red (Alerts/Errors)
+          dark: '#C62828',
+        },
       },
       animation: {
         'fade-in': 'fadeIn 0.2s ease-in',

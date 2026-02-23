@@ -137,12 +137,24 @@ export const RegisterPage: React.FC = () => {
     setStep(step - 1);
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center gradient-primary p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-2xl animate-slide-up">
+return (
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* 1. THE BACKGROUND IMAGE LAYER (Cinematic Zoom) */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat scale-105"
+        style={{ 
+          backgroundImage: `url('/src/assets/shams.png')`,
+        }}
+      />
+
+      {/* 2. THE CREATIVE OVERLAY */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-br from-navy/40 via-black/20 to-navy/70" />
+
+      {/* 3. YOUR REGISTRATION CARD */}
+<div className="relative z-20 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-2xl animate-slide-up border border-white/30">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="p-3 bg-blue-500 rounded-xl">
+            <div className="p-3 bg-blue-500 rounded-xl shadow-lg shadow-blue-500/30">
               <Activity className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-3xl font-extrabold gradient-primary bg-clip-text text-transparent">
@@ -163,9 +175,9 @@ export const RegisterPage: React.FC = () => {
             <React.Fragment key={s}>
               <div className="flex flex-col items-center">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all shadow-md ${
                     step >= s
-                      ? 'gradient-primary text-white'
+                      ? 'bg-blue-500 text-white'
                       : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
                   }`}
                 >
@@ -178,9 +190,7 @@ export const RegisterPage: React.FC = () => {
               {s < 3 && (
                 <div
                   className={`w-16 h-0.5 mx-2 -mt-5 transition-colors ${
-                    step > s
-                      ? 'bg-blue-500'
-                      : 'bg-gray-200 dark:bg-gray-700'
+                    step > s ? 'bg-blue-500' : 'bg-gray-200 dark:bg-gray-700'
                   }`}
                 />
               )}

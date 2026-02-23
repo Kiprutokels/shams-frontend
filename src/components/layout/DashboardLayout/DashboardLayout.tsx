@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { logout } from '@store/slices/authSlice';
 import { ThemeToggle } from '@components/common/ThemeToggle/ThemeToggle';
+import { Footer } from '@components/layout/Footer';
 import { cn } from '@utils/cn';
 import {
   Home,
@@ -233,6 +234,9 @@ export const DashboardLayout: React.FC = () => {
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950">
           <Outlet />
         </main>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </div>
   );

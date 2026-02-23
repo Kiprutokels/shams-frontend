@@ -25,7 +25,7 @@ export const Button: React.FC<ButtonProps> = ({
   
   const variants = {
     // Primary Blue (#1976D2) - Trust & Professionalism
-    primary: 'bg-primary text-white hover:bg-[#1565C0] shadow-md hover:shadow-lg',
+    primary: 'bg-[#1565C0] text-white hover:bg-[#1565C0] shadow-md hover:shadow-lg',
     
     // Secondary Green (#43A047) - Success & Confirmation
     secondary: 'bg-secondary text-white hover:bg-[#388E3C] shadow-md hover:shadow-lg',

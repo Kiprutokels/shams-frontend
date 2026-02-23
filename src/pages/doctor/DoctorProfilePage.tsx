@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from '@store/hooks';
 import { Card } from '@components/common/Card/Card';
 import { Button } from '@components/common/Button/Button';
 import { Input } from '@components/common/Input/Input';
 import { Loader } from '@components/common/Loader/Loader';
 import { userService } from '@services/api/user.service';
-import type { User } from '@types';
+import type { User, ApiResponse } from '@types';
 import { User as UserIcon, Mail, Briefcase, Building2, FileCheck, Save } from 'lucide-react';
 import { setUser } from '@store/slices/authSlice';
 
@@ -25,15 +25,11 @@ export const DoctorProfilePage: React.FC = () => {
     licenseNumber: '',
   });
 
-  useEffect(() => {
-    loadProfile();
-  }, [user?.id]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await userService.getProfile();
-      const profile = response.data?.data ?? response.data;
+      const response = await userService.getProfile() as ApiResponse<User>;
+      const profile = response?.data;
       if (profile) {
         setFormData({
           firstName: profile.firstName ?? '',
@@ -71,7 +67,11 @@ export const DoctorProfilePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -82,8 +82,8 @@ export const DoctorProfilePage: React.FC = () => {
     if (!user?.id) return;
     try {
       setSaving(true);
-      const response = await userService.updateProfile(user.id, formData);
-      const updated = response.data?.data ?? response.data;
+      const response = await userService.updateProfile(user.id, formData) as ApiResponse<User>;
+      const updated = response?.data;
       if (updated) {
         dispatch(setUser(updated));
       }
@@ -123,7 +123,7 @@ export const DoctorProfilePage: React.FC = () => {
                 variant="primary"
                 onClick={handleSave}
                 loading={saving}
-                className="bg-primary hover:opacity-90"
+                className="bg-[#1565C0] hover:opacity-90"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
