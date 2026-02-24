@@ -62,23 +62,30 @@ return (
 
       {/* Login Card - Wrapped in 'relative' to sit above the image and overlay */}
       <div className="relative z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-8 w-full max-w-md animate-slide-up">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="p-3 bg-blue-500 rounded-xl">
-              <Activity className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-3xl font-extrabold gradient-primary bg-clip-text text-transparent">
-              SHAMS
-            </h1>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Welcome Back
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Sign in to your healthcare account
-          </p>
-        </div>
+    {/* Header */}
+<div className="text-center mb-8">
+  <div className="flex items-center justify-center gap-3 mb-6">
+    {/* Logo Container - Made circular and transparent */}
+    <div className="p-1 bg-transparent rounded-full overflow-hidden flex items-center justify-center">
+      <img 
+        src="/src/assets/logo.png" 
+        alt="SHAMS Logo" 
+        className="w-12 h-12 transition-all duration-300 object-contain rounded-full"
+      />
+    </div>
+    
+    <h1 className="text-3xl font-extrabold gradient-primary bg-clip-text text-transparent">
+      SHAMS
+    </h1>
+  </div>
+  
+  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+    Welcome Back
+  </h2>
+  <p className="text-gray-600 dark:text-gray-400">
+    Sign in to your healthcare account
+  </p>
+</div>
 
         {error && (
           <div className="mb-6">

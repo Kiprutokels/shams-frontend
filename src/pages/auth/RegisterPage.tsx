@@ -152,23 +152,29 @@ return (
 
       {/* 3. YOUR REGISTRATION CARD */}
 <div className="relative z-20 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md rounded-2xl shadow-2xl p-8 w-full max-w-2xl animate-slide-up border border-white/30">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="p-3 bg-blue-500 rounded-xl shadow-lg shadow-blue-500/30">
-              <Activity className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-3xl font-extrabold gradient-primary bg-clip-text text-transparent">
-              SHAMS
-            </h1>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Create Account
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Join our healthcare management system
-          </p>
-        </div>
-
+       <div className="text-center mb-8">
+  <div className="flex items-center justify-center gap-3 mb-6">
+    {/* Updated Logo Container - Circular & Transparent */}
+    <div className="p-1 bg-transparent rounded-full overflow-hidden flex items-center justify-center">
+      <img 
+        src="/src/assets/logo.png" 
+        alt="SHAMS Logo" 
+        className="w-16 h-16 transition-all duration-300 object-contain rounded-full shadow-lg shadow-blue-500/10"
+      />
+    </div>
+    
+    <h1 className="text-3xl font-extrabold gradient-primary bg-clip-text text-transparent">
+      SHAMS
+    </h1>
+  </div>
+  
+  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+    Create Account
+  </h2>
+  <p className="text-gray-600 dark:text-gray-400">
+    Join our healthcare management system
+  </p>
+</div>
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-8">
           {[1, 2, 3].map((s) => (
