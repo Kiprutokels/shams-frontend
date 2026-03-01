@@ -145,7 +145,7 @@ const CheckInButton: React.FC<{
 
       {/* ── Hint text below button ── */}
       {hintText && (
-        <span className="text-[10px] text-gray-400 dark:text-gray-500 text-center leading-tight max-w-[100px]">
+        <span className="text-[10px] text-gray-400 dark:text-gray-500 text-center leading-tight max-w-25">
           {hintText}
         </span>
       )}
