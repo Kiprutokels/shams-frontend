@@ -6,7 +6,6 @@ import { Loader } from '@components/common/Loader/Loader';
 import { appointmentService } from '@services/api/appointment.service';
 import type { Appointment } from '@types';
 import {
-  Calendar,
   Clock,
   ChevronLeft,
   ChevronRight,
@@ -46,7 +45,7 @@ export const DoctorSchedulePage: React.FC = () => {
         startDate: start.toISOString().split('T')[0],
         endDate: end.toISOString().split('T')[0],
       });
-      const items = response.data?.data ?? response.data?.items ?? [];
+      const items = response.data ? response.data : [];
       setAppointments(Array.isArray(items) ? items : []);
     } catch (error) {
       console.error('Failed to load schedule:', error);
@@ -131,7 +130,7 @@ export const DoctorSchedulePage: React.FC = () => {
               return (
                 <div
                   key={i}
-                  className={`min-w-[140px] p-4 rounded-xl border-2 transition-all ${
+                  className={`min-w-35 p-4 rounded-xl border-2 transition-all ${
                     isToday
                       ? 'border-teal bg-teal/10'
                       : 'border-gray-200 dark:border-gray-700'
