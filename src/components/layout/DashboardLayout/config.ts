@@ -28,7 +28,6 @@ export interface RoleTheme {
 export const menuItems: Record<string, MenuItem[]> = {
   PATIENT: [
     { icon: Home, label: 'Dashboard', path: '/patient/dashboard' },
-    { icon: Calendar, label: 'Book Appointment', path: '/patient/book-appointment' },
     { icon: FileText, label: 'My Appointments', path: '/patient/appointments' },
     { icon: Clock, label: 'Queue Status', path: '/patient/queue-status' },
     { icon: BookOpen, label: 'Medical History', path: '/patient/medical-history' },
