@@ -1,74 +1,88 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppSelector } from '@store/hooks';
 import { Card } from '@components/common/Card/Card';
 import { Button } from '@components/common/Button/Button';
 import { Loader } from '@components/common/Loader/Loader';
+import { BookAppointmentModal } from '@components/modals/BookAppointmentModal';
+import { CheckInModal } from '@components/modals/CheckInModal';
 import { appointmentService } from '@services/api/appointment.service';
 import type { Appointment, AppointmentStatus } from '@types';
 import {
-  Calendar,
-  Clock,
-  ChevronRight,
-  Search,
-  XCircle,
+  Calendar, Clock, Search, XCircle,
+  ChevronRight, LogIn, Filter, CheckCircle, AlertCircle,
 } from 'lucide-react';
+
+const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
+  SCHEDULED:   { bg: 'bg-blue-100 dark:bg-blue-900/20',   text: 'text-blue-700 dark:text-blue-300' },
+  CONFIRMED:   { bg: 'bg-green-100 dark:bg-green-900/20', text: 'text-green-700 dark:text-green-300' },
+  IN_PROGRESS: { bg: 'bg-amber-100 dark:bg-amber-900/20', text: 'text-amber-700 dark:text-amber-300' },
+  COMPLETED:   { bg: 'bg-teal-100 dark:bg-teal-900/20',   text: 'text-teal-700 dark:text-teal-300' },
+  CANCELLED:   { bg: 'bg-gray-100 dark:bg-gray-800',      text: 'text-gray-500' },
+  NO_SHOW:     { bg: 'bg-red-100 dark:bg-red-900/20',     text: 'text-red-700 dark:text-red-300' },
+  RESCHEDULED: { bg: 'bg-amber-100 dark:bg-amber-900/20', text: 'text-amber-700 dark:text-amber-300' },
+};
+
+const STATUS_TABS = ['', 'SCHEDULED', 'CONFIRMED', 'RESCHEDULED', 'COMPLETED', 'CANCELLED'] as const;
 
 export const MyAppointmentsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
-  const [loading, setLoading] = useState(true);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState<string>('');
 
-  useEffect(() => {
-    loadAppointments();
-  }, [filter]);
+  const [loading, setLoading]               = useState(true);
+  const [appointments, setAppointments]     = useState<Appointment[]>([]);
+  const [searchTerm, setSearchTerm]         = useState('');
+  const [filter, setFilter]                 = useState('');
+  const [showBookModal, setShowBookModal]   = useState(false);
+  const [showCheckIn, setShowCheckIn]       = useState(false);
+  const [selectedApt, setSelectedApt]       = useState<Appointment | null>(null);
 
-  const loadAppointments = async () => {
+  // ─── Load ───────────────────────────────────────────────────────────────────
+  const loadAppointments = useCallback(async () => {
     try {
       setLoading(true);
-      const params: Record<string, unknown> = { patientId: user?.id };
+      const params: Record<string, unknown> = {};
       if (filter) params.status = filter;
+
       const response = await appointmentService.getAll(params);
-      const data = response.data;
-      const items = data?.data ?? (data as { items?: Appointment[] })?.items ?? [];
-      setAppointments(Array.isArray(items) ? items : []);
-    } catch (error) {
-      console.error('Failed to load appointments:', error);
+      setAppointments(response.data);
+    } catch {
       setAppointments([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
-  const filteredAppointments = appointments.filter((apt) => {
-    const doctorName = `${apt.doctor?.firstName ?? ''} ${apt.doctor?.lastName ?? ''}`.toLowerCase();
-    const complaint = (apt.chiefComplaint ?? '').toLowerCase();
+  useEffect(() => { loadAppointments(); }, [loadAppointments]);
+
+  // ─── Derived ────────────────────────────────────────────────────────────────
+  const filtered = appointments.filter((apt) => {
+    if (!searchTerm) return true;
     const term = searchTerm.toLowerCase();
-    return !searchTerm || doctorName.includes(term) || complaint.includes(term);
+    const doc  = apt.doctor
+      ? `Dr. ${apt.doctor.firstName} ${apt.doctor.lastName}`.toLowerCase()
+      : 'unassigned';
+    const cc   = (apt.chiefComplaint ?? '').toLowerCase();
+    return doc.includes(term) || cc.includes(term);
   });
 
-  const statusStyles: Record<string, { bg: string; text: string }> = {
-    SCHEDULED: { bg: 'bg-primary/20', text: 'text-primary' },
-    CONFIRMED: { bg: 'bg-secondary/20', text: 'text-secondary' },
-    IN_PROGRESS: { bg: 'bg-accent/20', text: 'text-accent' },
-    COMPLETED: { bg: 'bg-secondary/20', text: 'text-secondary' },
-    CANCELLED: { bg: 'bg-neutral/20', text: 'text-neutral' },
-    NO_SHOW: { bg: 'bg-warmRed/20', text: 'text-warmRed' },
+  const getStyle = (s: string) => STATUS_STYLES[s] ?? STATUS_STYLES.SCHEDULED;
+
+  // Check-in window: 1 h before → 30 min after appointment time
+  const canCheckIn = (apt: Appointment) => {
+    if (apt.checkedIn) return false;
+    if (!['SCHEDULED', 'CONFIRMED'].includes(apt.status)) return false;
+    const t   = new Date(apt.appointmentDate).getTime();
+    const now = Date.now();
+    return now >= t - 3_600_000 && now <= t + 1_800_000;
   };
 
-  const getStatusStyle = (status: AppointmentStatus) =>
-    statusStyles[status] ?? statusStyles.SCHEDULED;
-
+  // ─── Cancel ─────────────────────────────────────────────────────────────────
   const handleCancel = async (id: number) => {
     if (!window.confirm('Cancel this appointment?')) return;
     try {
       await appointmentService.cancel(id);
       loadAppointments();
-    } catch (err) {
-      console.error('Failed to cancel:', err);
+    } catch (err: any) {
+      alert(err?.response?.data?.message ?? 'Failed to cancel appointment');
     }
   };
 
@@ -76,18 +90,19 @@ export const MyAppointmentsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-neutral-bg dark:bg-gray-950 p-6">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
             My Appointments
           </h1>
           <p className="text-neutral dark:text-gray-400">
-            View and manage your scheduled appointments
+            View, check-in, and manage your appointments
           </p>
         </div>
         <Button
           variant="primary"
-          onClick={() => navigate('/patient/book-appointment')}
+          onClick={() => setShowBookModal(true)}
           className="mt-4 md:mt-0 bg-primary hover:opacity-90"
         >
           <Calendar className="w-4 h-4 mr-2" />
@@ -95,6 +110,7 @@ export const MyAppointmentsPage: React.FC = () => {
         </Button>
       </div>
 
+      {/* Filters */}
       <Card className="mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
@@ -104,52 +120,68 @@ export const MyAppointmentsPage: React.FC = () => {
               placeholder="Search by doctor or complaint..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
+              className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 dark:border-gray-700
+                         rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white
+                         focus:outline-none focus:border-blue-500"
             />
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {['', 'SCHEDULED', 'CONFIRMED', 'COMPLETED', 'CANCELLED'].map((status) => (
+          <div className="flex gap-2 flex-wrap items-center">
+            <Filter className="w-4 h-4 text-neutral" />
+            {STATUS_TABS.map((s) => (
               <button
-                key={status || 'all'}
-                onClick={() => setFilter(status)}
-                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-                  filter === status
+                key={s || 'all'}
+                onClick={() => setFilter(s)}
+                className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  filter === s
                     ? 'bg-primary text-white'
-                    : 'bg-neutral-bg dark:bg-gray-800 text-neutral hover:bg-gray-200 dark:hover:bg-gray-700'
+                    : 'bg-gray-100 dark:bg-gray-800 text-neutral hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
-                {status || 'All'}
+                {s || 'All'}
               </button>
             ))}
           </div>
         </div>
       </Card>
 
-      <Card title={`Appointments (${filteredAppointments.length})`} className="border-l-4 border-l-primary">
-        {filteredAppointments.length === 0 ? (
+      {/* List */}
+      <Card
+        title={`Appointments (${filtered.length})`}
+        className="border-l-4 border-l-primary"
+      >
+        {filtered.length === 0 ? (
           <div className="text-center py-16">
-            <Calendar className="w-16 h-16 text-neutral mx-auto mb-4" />
-            <p className="text-neutral dark:text-gray-400 mb-4">No appointments found</p>
-            <Button
-              variant="primary"
-              className="bg-primary hover:opacity-90"
-              onClick={() => navigate('/patient/book-appointment')}
-            >
+            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-neutral mb-4">No appointments found</p>
+            <Button variant="primary" onClick={() => setShowBookModal(true)}>
               Book Appointment
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredAppointments.map((apt) => {
-              const style = getStatusStyle(apt.status as AppointmentStatus);
-              const canCancel = ['SCHEDULED', 'CONFIRMED'].includes(apt.status);
+          <div className="space-y-3">
+            {filtered.map((apt) => {
+              const style         = getStyle(apt.status as AppointmentStatus);
+              const eligibleCheckIn = canCheckIn(apt);
+              const canCancel     = ['SCHEDULED', 'CONFIRMED'].includes(apt.status);
+              const isConfirmed   = !!apt.confirmedAt;
+              const isPending     = apt.status === 'SCHEDULED' && !apt.confirmedAt;
+
+              const doctorTitle = apt.doctor
+                ? `Dr. ${apt.doctor.firstName} ${apt.doctor.lastName}`
+                : 'Any Available Doctor';
+
               return (
                 <div
                   key={apt.id}
-                  className="flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-primary/50 transition-all"
+                  className="flex items-center gap-4 p-4 rounded-xl border-2
+                             border-gray-100 dark:border-gray-800
+                             hover:border-primary/30 transition-all"
                 >
-                  <div className="flex flex-col items-center justify-center w-16 h-16 bg-primary/10 rounded-xl shrink-0 border-l-4 border-l-primary">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {/* Date block */}
+                  <div className="flex flex-col items-center w-14 h-14
+                                  bg-primary/10 border-l-4 border-l-primary
+                                  rounded-xl shrink-0 justify-center">
+                    <div className="text-xl font-bold text-gray-900 dark:text-white">
                       {new Date(apt.appointmentDate).getDate()}
                     </div>
                     <div className="text-xs font-semibold text-primary uppercase">
@@ -158,37 +190,81 @@ export const MyAppointmentsPage: React.FC = () => {
                       })}
                     </div>
                   </div>
+
+                  {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-900 dark:text-white">
-                      Dr. {apt.doctor?.firstName} {apt.doctor?.lastName}
-                    </h4>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className="font-bold text-gray-900 dark:text-white">
+                        {doctorTitle}
+                      </h4>
+                      {apt.checkedIn && (
+                        <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> Checked In
+                        </span>
+                      )}
+                      {isPending && (
+                        <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> Awaiting Confirmation
+                        </span>
+                      )}
+                    </div>
+
                     <p className="text-sm text-neutral">
-                      {apt.doctor?.specialization}
+                      {apt.doctor?.specialization ?? '—'}
                     </p>
-                    <p className="text-sm text-neutral flex items-center gap-1 mt-1">
+
+                    <p className="text-sm text-neutral flex items-center gap-1 mt-0.5">
                       <Clock className="w-3 h-3" />
                       {new Date(apt.appointmentDate).toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit',
+                        hour: '2-digit', minute: '2-digit',
                       })}
+                      {' · '}
+                      {apt.durationMinutes} min
                     </p>
+
                     {apt.chiefComplaint && (
-                      <p className="text-sm text-neutral truncate mt-1">
+                      <p className="text-xs text-gray-500 truncate mt-0.5">
                         {apt.chiefComplaint}
                       </p>
                     )}
+
+                    {isConfirmed && (
+                      <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5">
+                        <CheckCircle className="w-3 h-3" />
+                        Confirmed by clinic
+                      </p>
+                    )}
                   </div>
+
+                  {/* Status badge */}
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold ${style.bg} ${style.text}`}
+                    className={`px-3 py-1 rounded-full text-xs font-bold
+                                ${style.bg} ${style.text}`}
                   >
                     {apt.status}
                   </span>
-                  <div className="flex gap-2">
+
+                  {/* Actions */}
+                  <div className="flex gap-2 shrink-0">
+                    {eligibleCheckIn && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="bg-green-500 hover:bg-green-600 text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedApt(apt);
+                          setShowCheckIn(true);
+                        }}
+                      >
+                        <LogIn className="w-3 h-3 mr-1" /> Check In
+                      </Button>
+                    )}
                     {canCancel && (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-accent text-accent hover:bg-accent/10"
+                        className="border-red-300 text-red-500 hover:bg-red-50"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleCancel(apt.id);
@@ -200,10 +276,9 @@ export const MyAppointmentsPage: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-primary text-primary"
-                      onClick={() => navigate(`/patient/appointments/${apt.id}`)}
+                      className="border-gray-300"
                     >
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-4 h-4 text-gray-500" />
                     </Button>
                   </div>
                 </div>
@@ -212,6 +287,22 @@ export const MyAppointmentsPage: React.FC = () => {
           </div>
         )}
       </Card>
+
+      {/* Modals */}
+      <BookAppointmentModal
+        isOpen={showBookModal}
+        onClose={() => setShowBookModal(false)}
+        onSuccess={loadAppointments}
+      />
+      <CheckInModal
+        isOpen={showCheckIn}
+        onClose={() => setShowCheckIn(false)}
+        appointment={selectedApt}
+        onSuccess={() => {
+          loadAppointments();
+          navigate('/patient/queue-status');
+        }}
+      />
     </div>
   );
 };
