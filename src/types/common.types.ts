@@ -14,8 +14,4 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
-
-export interface SelectOption {
-  label: string;
-  value: string | number;
-}
+// ─── Response wrappers ────────────────────────────────────────────────────────
