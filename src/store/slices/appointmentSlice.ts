@@ -1,13 +1,18 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { appointmentService } from '@services/api/appointment.service';
-import type { Appointment } from '@types';
+import type {
+  Appointment,
+  PaginatedResponse,
+  CreateAppointmentData,
+  UpdateAppointmentData,
+} from '@types';
 
 interface AppointmentState {
   appointments: Appointment[];
   currentAppointment: Appointment | null;
   loading: boolean;
   error: string | null;
-  pagination: any;
+  pagination: PaginatedResponse<Appointment>['pagination'] | null;
 }
 
 const initialState: AppointmentState = {
@@ -18,36 +23,41 @@ const initialState: AppointmentState = {
   pagination: null,
 };
 
+// ─── Thunks ───────────────────────────────────────────────────────────────────
+
 export const fetchAppointments = createAsyncThunk(
   'appointments/fetchAll',
-  async (params?: any) => {
-    const response = await appointmentService.getAll(params);
-    return response.data;
-  }
+  async (params?: Record<string, unknown>) => {
+    return appointmentService.getAll(params);   // PaginatedResponse<Appointment>
+  },
 );
 
 export const fetchAppointmentById = createAsyncThunk(
   'appointments/fetchById',
   async (id: number) => {
-    const response = await appointmentService.getById(id);
-    return response.data;
-  }
+    return appointmentService.getById(id);       // Appointment
+  },
 );
 
 export const createAppointment = createAsyncThunk(
   'appointments/create',
-  async (data: any) => {
-    const response = await appointmentService.create(data);
-    return response.data;
-  }
+  async (data: CreateAppointmentData) => {
+    return appointmentService.create(data);      // Appointment
+  },
 );
 
 export const updateAppointment = createAsyncThunk(
   'appointments/update',
-  async ({ id, data }: { id: number; data: any }) => {
-    const response = await appointmentService.update(id, data);
-    return response.data;
-  }
+  async ({ id, data }: { id: number; data: UpdateAppointmentData }) => {
+    return appointmentService.update(id, data);  // Appointment
+  },
+);
+
+export const confirmAppointment = createAsyncThunk(
+  'appointments/confirm',
+  async (id: number) => {
+    return appointmentService.confirm(id);       // Appointment
+  },
 );
 
 export const cancelAppointment = createAsyncThunk(
@@ -55,51 +65,71 @@ export const cancelAppointment = createAsyncThunk(
   async (id: number) => {
     await appointmentService.cancel(id);
     return id;
-  }
+  },
 );
+
+// ─── Slice ────────────────────────────────────────────────────────────────────
 
 const appointmentSlice = createSlice({
   name: 'appointments',
   initialState,
   reducers: {
-    clearError: (state) => {
-      state.error = null;
-    },
-    clearCurrentAppointment: (state) => {
-      state.currentAppointment = null;
-    },
+    clearError:              (state) => { state.error = null; },
+    clearCurrentAppointment: (state) => { state.currentAppointment = null; },
   },
   extraReducers: (builder) => {
+    // ── fetchAll ──────────────────────────────────────────────────────────────
     builder
       .addCase(fetchAppointments.pending, (state) => {
         state.loading = true;
+        state.error   = null;
       })
       .addCase(fetchAppointments.fulfilled, (state, action) => {
-        state.loading = false;
-        state.appointments = action.payload.data || action.payload;
-        state.pagination = action.payload.pagination;
+        state.loading     = false;
+        state.appointments = action.payload.data;        // Appointment[]
+        state.pagination   = action.payload.pagination;
       })
       .addCase(fetchAppointments.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to fetch appointments';
-      })
+        state.error   = action.error.message ?? 'Failed to fetch appointments';
+      });
+
+    // ── fetchById ─────────────────────────────────────────────────────────────
+    builder
       .addCase(fetchAppointmentById.fulfilled, (state, action) => {
-        state.currentAppointment = action.payload;
-      })
+        state.currentAppointment = action.payload;  // Appointment
+      });
+
+    // ── create ────────────────────────────────────────────────────────────────
+    builder
       .addCase(createAppointment.fulfilled, (state, action) => {
         state.appointments.unshift(action.payload);
-      })
-      .addCase(updateAppointment.fulfilled, (state, action) => {
-        const index = state.appointments.findIndex(a => a.id === action.payload.id);
-        if (index !== -1) {
-          state.appointments[index] = action.payload;
+      });
+
+    // ── update ────────────────────────────────────────────────────────────────
+    builder
+      .addCase(updateAppointment.fulfilled, (state, { payload }) => {
+        const idx = state.appointments.findIndex((a) => a.id === payload.id);
+        if (idx !== -1) state.appointments[idx] = payload;
+        if (state.currentAppointment?.id === payload.id) {
+          state.currentAppointment = payload;
         }
-        if (state.currentAppointment?.id === action.payload.id) {
-          state.currentAppointment = action.payload;
+      });
+
+    // ── confirm ───────────────────────────────────────────────────────────────
+    builder
+      .addCase(confirmAppointment.fulfilled, (state, { payload }) => {
+        const idx = state.appointments.findIndex((a) => a.id === payload.id);
+        if (idx !== -1) state.appointments[idx] = payload;
+        if (state.currentAppointment?.id === payload.id) {
+          state.currentAppointment = payload;
         }
-      })
-      .addCase(cancelAppointment.fulfilled, (state, action) => {
-        state.appointments = state.appointments.filter(a => a.id !== action.payload);
+      });
+
+    // ── cancel ────────────────────────────────────────────────────────────────
+    builder
+      .addCase(cancelAppointment.fulfilled, (state, { payload: id }) => {
+        state.appointments = state.appointments.filter((a) => a.id !== id);
       });
   },
 });
