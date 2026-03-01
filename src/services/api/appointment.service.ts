@@ -1,31 +1,88 @@
 import { apiClient } from './client';
 import type {
   Appointment,
-  CreateAppointmentData,
-  UpdateAppointmentData,
   ApiResponse,
   PaginatedResponse,
+  CreateAppointmentData,
+  UpdateAppointmentData,
 } from '@types';
 
 export const appointmentService = {
-  create: (data: CreateAppointmentData) =>
-    apiClient.post<ApiResponse<Appointment>>('/appointments', data),
+  // ─── CRUD ──────────────────────────────────────────────────────────────────
 
-  getAll: (params?: any) =>
-    apiClient.get<ApiResponse<PaginatedResponse<Appointment>>>('/appointments', { params }),
+  create: async (body: CreateAppointmentData): Promise<Appointment> => {
+    const res = await apiClient.post<ApiResponse<Appointment>>(
+      '/appointments',
+      body,
+    );
+    return res.data;
+  },
 
-  getById: (id: number) =>
-    apiClient.get<ApiResponse<Appointment>>(`/appointments/${id}`),
+  getAll: async (
+    params?: Record<string, unknown>,
+  ): Promise<PaginatedResponse<Appointment>> => {
+    const res = await apiClient.get<ApiResponse<PaginatedResponse<Appointment>>>(
+      '/appointments',
+      { params },
+    );
+    return res.data;
+  },
 
-  update: (id: number, data: UpdateAppointmentData) =>
-    apiClient.patch<ApiResponse<Appointment>>(`/appointments/${id}`, data),
+  getById: async (id: number): Promise<Appointment> => {
+    const res = await apiClient.get<ApiResponse<Appointment>>(
+      `/appointments/${id}`,
+    );
+    return res.data;
+  },
 
-  cancel: (id: number) =>
-    apiClient.delete<ApiResponse<void>>(`/appointments/${id}`),
+  update: async (
+    id: number,
+    body: UpdateAppointmentData,
+  ): Promise<Appointment> => {
+    const res = await apiClient.patch<ApiResponse<Appointment>>(
+      `/appointments/${id}`,
+      body,
+    );
+    return res.data;
+  },
 
-  getUpcoming: () =>
-    apiClient.get<ApiResponse<Appointment[]>>('/appointments/upcoming'),
+  cancel: async (id: number): Promise<Appointment> => {
+    const res = await apiClient.delete<ApiResponse<Appointment>>(
+      `/appointments/${id}`,
+    );
+    return res.data;
+  },
 
-  getHistory: () =>
-    apiClient.get<ApiResponse<Appointment[]>>('/appointments/history'),
+  // ─── Confirm (ADMIN / NURSE) ───────────────────────────────────────────────
+  confirm: async (id: number): Promise<Appointment> => {
+    const res = await apiClient.post<ApiResponse<Appointment>>(
+      `/appointments/${id}/confirm`,
+    );
+    return res.data;
+  },
+
+  // ─── Check-in (PATIENT) ───────────────────────────────────────────────────
+  checkIn: async (id: number): Promise<Appointment> => {
+    const res = await apiClient.patch<ApiResponse<Appointment>>(
+      `/appointments/${id}`,
+      { checkedIn: true },
+    );
+    return res.data;
+  },
+
+  // ─── Convenience queries ──────────────────────────────────────────────────
+
+  getUpcoming: async (): Promise<Appointment[]> => {
+    const res = await apiClient.get<ApiResponse<Appointment[]>>(
+      '/appointments/upcoming',
+    );
+    return res.data;
+  },
+
+  getHistory: async (): Promise<Appointment[]> => {
+    const res = await apiClient.get<ApiResponse<Appointment[]>>(
+      '/appointments/history',
+    );
+    return res.data;
+  },
 };
