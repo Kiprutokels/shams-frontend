@@ -1,22 +1,51 @@
+// Calls the NestJS backend /ai/* endpoints which proxy to the Python ML service.
 import { apiClient } from './client';
-import type { NoShowPrediction, WaitTimePrediction, PriorityClassification, ApiResponse } from '@types';
+import type { ApiResponse, NoShowPrediction, WaitTimePrediction, PriorityClassification } from '@types';
 
 export const aiService = {
-  predictNoShow: (data: any) =>
-    apiClient.post<ApiResponse<NoShowPrediction>>('/ai/predict-noshow', data),
+  /** Predict no-show probability for an appointment */
+  predictNoShow: (data: {
+    appointment_id?: number;
+    patient_id: number;
+    appointment_date: string;
+    appointment_type: string;
+    previous_no_shows?: number;
+    previous_appointments?: number;
+    patient_age?: number;
+  }) => apiClient.post<ApiResponse<NoShowPrediction>>('/ai/predict-noshow', data),
 
-  estimateWaitTime: (data: any) =>
-    apiClient.post<ApiResponse<WaitTimePrediction>>('/ai/estimate-wait-time', data),
+  /** Estimate wait time */
+  estimateWaitTime: (data: {
+    appointment_id?: number;
+    doctor_id: number;
+    appointment_date: string;
+    appointment_type: string;
+    current_queue_length?: number;
+    time_of_day?: string;
+    day_of_week?: string;
+  }) => apiClient.post<ApiResponse<WaitTimePrediction>>('/ai/estimate-wait-time', data),
 
-  classifyPriority: (data: any) =>
-    apiClient.post<ApiResponse<PriorityClassification>>('/ai/classify-priority', data),
+  /** Classify patient priority */
+  classifyPriority: (data: {
+    patient_id: number;
+    appointment_id?: number;
+    chief_complaint: string;
+    symptoms?: string;
+    vital_signs?: Record<string, any>;
+    medical_history?: string;
+    patient_age?: number;
+  }) => apiClient.post<ApiResponse<PriorityClassification>>('/ai/classify-priority', data),
 
-  optimizeQueue: (data: any) =>
+  /** Optimize queue for a given date/doctor */
+  optimizeQueue: (data: { date: string; doctor_id?: number }) =>
     apiClient.post<ApiResponse<any>>('/ai/optimize-queue', data),
 
-  batchPredict: (data: any) =>
-    apiClient.post<ApiResponse<any>>('/ai/batch-predict', data),
+  /** Batch predictions for multiple appointments */
+  batchPredict: (data: {
+    appointment_ids: number[];
+    prediction_type: 'no_show' | 'wait_time' | 'priority';
+  }) => apiClient.post<ApiResponse<any>>('/ai/batch-predict', data),
 
-  healthCheck: () =>
-    apiClient.get<ApiResponse<any>>('/ai/health'),
+  /** Health check */
+  healthCheck: () => apiClient.get<ApiResponse<any>>('/ai/health'),
 };
