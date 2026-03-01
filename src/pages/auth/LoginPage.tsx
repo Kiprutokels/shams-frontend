@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { login, clearError } from '@store/slices/authSlice';
 import { Button } from '@components/common/Button/Button';
 import { Alert } from '@components/common/Alert/Alert';
-import { Activity, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
