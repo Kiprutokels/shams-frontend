@@ -11,6 +11,10 @@ import { RegisterPage } from "@pages/auth/RegisterPage";
 import { VerifyEmailPage } from "@pages/auth/VerifyEmailPage";
 import { ForgotPasswordPage } from "@pages/auth/ForgotPasswordPage";
 import { ResetPasswordPage } from "@pages/auth/ResetPasswordPage";
+// Legal Pages
+import { TermsOfService } from "@pages/legal/TermsOfService";
+import { PrivacyPolicy } from "@pages/legal/PrivacyPolicy";
+
 
 // Patient Pages
 import { PatientDashboard } from "@pages/patient/PatientDashboard";
@@ -47,6 +51,8 @@ export const AppRoutes: React.FC = () => {
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Protected Routes */}
