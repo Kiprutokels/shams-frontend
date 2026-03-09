@@ -172,18 +172,18 @@ export const QueueStatusPage: React.FC = () => {
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => loadQueueStatus(true)}
-          className="mt-4 md:mt-0 border-primary text-primary"
-          disabled={refreshing}
-        >
-          <RefreshCw
-            className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`}
-          />
-          {refreshing ? "Refreshing…" : "Refresh"}
-        </Button>
+     <Button
+  variant="outline"
+  size="sm"
+  onClick={() => loadQueueStatus(true)}
+  className="border-[#1565C0] text-[#1565C0] hover:bg-[#1565C0] hover:text-white transition-colors"
+  disabled={refreshing}
+>
+  <RefreshCw
+    className={`w-4 h-4 mr-2 ${refreshing ? "animate-spin" : ""}`}
+  />
+  {refreshing ? "Refreshing…" : "Refresh"}
+</Button>
       </div>
 
       {/* ── Error Banner ───────────────────────────────────────────────────── */}
@@ -368,7 +368,7 @@ export const QueueStatusPage: React.FC = () => {
           {/* ── Bottom refresh ───────────────────────────────────────────── */}
           <Button
             variant="outline"
-            className="w-full border-primary text-primary"
+            className="w-full border-[#1565C0] text-[#1565C0] hover:bg-[#1565C0] hover:text-white transition-colors"
             onClick={() => loadQueueStatus(true)}
             disabled={refreshing}
           >

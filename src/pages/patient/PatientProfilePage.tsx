@@ -113,8 +113,8 @@ export const PatientProfilePage: React.FC = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="min-h-screen bg-neutral-bg dark:bg-gray-950 p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+    <div className="min-h-screen bg-neutral-bg dark:bg-gray-950 p-6 ">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 ">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Profile
@@ -124,27 +124,27 @@ export const PatientProfilePage: React.FC = () => {
           </p>
         </div>
         {!editing ? (
-          <Button
-            variant="outline"
-            className="border-primary text-primary hover:bg-primary hover:text-white"
-            onClick={() => setEditing(true)}
-          >
-            <Edit3 className="w-4 h-4 mr-2" />
-            Edit Profile
-          </Button>
+      <Button
+  variant="outline"
+  className="border-[#1565C0] text-[#1565C0] hover:bg-[#1565C0] hover:text-white transition-colors"
+  onClick={() => setEditing(true)}
+>
+  <Edit3 className="w-4 h-4 mr-2" />
+  Edit Profile
+</Button>
         ) : (
           <div className="flex gap-2">
             <Button
               variant="outline"
-              className="border-neutral text-neutral"
+              className="border-[#1565C0] text-[#1565C0] hover:bg-[#1565C0] hover:text-white transition-colors"
               onClick={handleCancel}
             >
               <X className="w-4 h-4 mr-2" />
               Cancel
             </Button>
             <Button
-              variant="primary"
-              className="bg-primary hover:opacity-90"
+              variant="outline"
+              className="border-[#1565C0] text-[#1565C0] hover:bg-[#1565C0] hover:text-white transition-colors"
               onClick={handleSave}
             >
               <Save className="w-4 h-4 mr-2" />
@@ -154,7 +154,7 @@ export const PatientProfilePage: React.FC = () => {
         )}
       </div>
 
-      <Card className="mb-6 border-l-4 border-l-primary">
+      <Card className="mb-6 border-l-[4px] border-l-[#1976D2]">
         <div className="flex flex-col md:flex-row gap-8">
           <div className="flex flex-col items-center md:items-start">
             <div className="w-32 h-32 rounded-full bg-primary/20 flex items-center justify-center border-4 border-primary">

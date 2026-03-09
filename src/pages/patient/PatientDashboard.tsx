@@ -133,9 +133,9 @@ export const PatientDashboard: React.FC = () => {
           </p>
         </div>
         <Button
-          variant="primary"
+          variant="outline"
           onClick={() => setShowBookModal(true)}
-          className="mt-4 md:mt-0 bg-primary hover:opacity-90"
+          className="border-[#1565C0] text-[#1565C0] hover:bg-[#1565C0] hover:text-white transition-colors"
         >
           <Calendar className="w-4 h-4 mr-2" />
           Book Appointment
@@ -149,33 +149,33 @@ export const PatientDashboard: React.FC = () => {
             icon: Calendar,
             label: "Total",
             value: stats?.total || 0,
-            border: "border-l-primary",
-            bg: "bg-primary/10",
-            color: "text-primary",
+            border: "border-l-[#1976D2]",
+            bg: "bg-[#1976D2]/10",
+            color: "text-[#1976D2]",
           },
           {
             icon: CheckCircle,
             label: "Completed",
             value: stats?.completed || 0,
-            border: "border-l-secondary",
-            bg: "bg-secondary/10",
-            color: "text-secondary",
+            border: "border-l-[#43A047]",
+            bg: "bg-[#43A047]/10",
+            color: "text-[#43A047]",
           },
           {
             icon: Clock,
             label: "Upcoming",
             value: stats?.upcoming || 0,
-            border: "border-l-accent",
-            bg: "bg-accent/10",
-            color: "text-accent",
+            border: "border-l-[#26A69A]",
+            bg: "bg-[#26A69A]/10",
+            color: "text-[#26A69A]",
           },
           {
             icon: XCircle,
             label: "Cancelled",
             value: stats?.cancelled || 0,
-            border: "border-l-warmRed",
-            bg: "bg-warmRed/10",
-            color: "text-warmRed",
+            border: "border-l-[#E53935]",
+            bg: "bg-[#E53935]/10",
+            color: "text-[#E53935]",
           },
         ].map((s) => (
           <Card key={s.label} className={`border-l-4 ${s.border}`}>
@@ -227,17 +227,18 @@ export const PatientDashboard: React.FC = () => {
       {/* Upcoming + Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Upcoming Appointments */}
-        <Card title="Upcoming Appointments" className="lg:col-span-2">
+        <Card title="Upcoming Appointments" className="lg:col-span-2 border-l-4 border-l-[#1976D2] ">
           {upcomingAppointments.length === 0 ? (
-            <div className="text-center py-12">
-              <Calendar className="w-14 h-14 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
+            <div className="text-center py-12 ">
+              <Calendar className="w-14 h-14 text-gray-300 mx-auto mb-3 border-l-[#E53935]" />
+              <p className="text-gray-500 dark:text-gray-400 mb-4 ">
                 No upcoming appointments
               </p>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowBookModal(true)}
+                 className="border-[#1565C0] text-[#1565C0] hover:bg-[#1565C0] hover:text-white transition-colors"
               >
                 Book Now
               </Button>
@@ -329,8 +330,8 @@ export const PatientDashboard: React.FC = () => {
         </Card>
 
         {/* Quick Actions */}
-        <Card title="Quick Actions">
-          <div className="space-y-3">
+        <Card title="Quick Actions" className="border-l-4 border-l-[#1976D2]">
+          <div className="space-y-3 ">
             {[
               {
                 icon: FileText,
@@ -386,7 +387,7 @@ export const PatientDashboard: React.FC = () => {
       </div>
 
       {/* Health Tips */}
-      <Card title="💡 Daily Health Tips">
+      <Card title="💡 Daily Health Tips" className="border-l-4 border-l-[#1976D2]">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             {

@@ -223,9 +223,9 @@ export const MyAppointmentsPage: React.FC = () => {
           </p>
         </div>
         <Button
-          variant="primary"
+          variant="outline"
           onClick={() => setShowBookModal(true)}
-          className="mt-4 md:mt-0 bg-primary hover:opacity-90"
+          className="border-[#1565C0] text-[#1565C0] hover:bg-[#1565C0] hover:text-white transition-colors"
         >
           <Calendar className="w-4 h-4 mr-2" />
           Book New
@@ -272,17 +272,17 @@ export const MyAppointmentsPage: React.FC = () => {
           <div className="flex gap-2 flex-wrap items-center">
             <Filter className="w-4 h-4 text-neutral" />
             {STATUS_TABS.map((s) => (
-              <button
-                key={s || "all"}
-                onClick={() => setFilter(s)}
-                className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  filter === s
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 dark:bg-gray-800 text-neutral hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                {s || "All"}
-              </button>
+          <button
+  key={s || "all"}
+  onClick={() => setFilter(s)}
+  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
+    filter === s
+      ? "bg-[#1976D2] text-white shadow-md transform scale-105" 
+      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-[#1976D2]/5 hover:text-[#1976D2] hover:border-[#1976D2]/30"
+  }`}
+>
+  {s || "All"}
+</button>
             ))}
           </div>
         </div>
@@ -291,7 +291,7 @@ export const MyAppointmentsPage: React.FC = () => {
       {/* ── Appointment List ────────────────────────────────────────────────── */}
       <Card
         title={`Appointments (${filtered.length})`}
-        className="border-l-4 border-l-primary"
+        className="border-l-4 border-l-[#1976D2]"
       >
         {filtered.length === 0 ? (
           <div className="text-center py-16">
