@@ -5,6 +5,7 @@ import { Button } from "@components/common/Button/Button";
 import { Loader } from "@components/common/Loader/Loader";
 import { BookAppointmentModal } from "@components/modals/BookAppointmentModal";
 import { CheckInModal } from "@components/modals/CheckInModal";
+import { RescheduleAppointmentModal } from "@components/modals/RescheduleAppointmentModal";
 import { appointmentService } from "@services/api/appointment.service";
 import type { Appointment, AppointmentStatus } from "@types";
 import {
@@ -18,9 +19,10 @@ import {
   CheckCircle,
   AlertCircle,
   Info,
+  RefreshCw,
 } from "lucide-react";
 
-// ─── Status Styles ──────────────────────────────────────────────────────────
+// ─── Status styles
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   SCHEDULED: {
     bg: "bg-blue-100 dark:bg-blue-900/20",
@@ -58,7 +60,7 @@ const STATUS_TABS = [
   "CANCELLED",
 ] as const;
 
-// ─── Check-in status type ───────────────────────────────────────────────────
+// ─── Check-in state types ─────────────────────────────────────────────────────
 type CheckInState =
   | { state: "available" }
   | { state: "already_checked_in" }
@@ -66,7 +68,6 @@ type CheckInState =
   | { state: "too_late" }
   | { state: "not_applicable" };
 
-// ─── Helper: resolve check-in state ─────────────────────────────────────────
 const getCheckInState = (apt: Appointment): CheckInState => {
   if (apt.checkedIn) return { state: "already_checked_in" };
   if (!["SCHEDULED", "CONFIRMED"].includes(apt.status))
@@ -74,7 +75,7 @@ const getCheckInState = (apt: Appointment): CheckInState => {
 
   const apptTime = new Date(apt.appointmentDate).getTime();
   const now = Date.now();
-  const opensAt = apptTime - 3_600_000; // 1 hour before
+  const opensAt = apptTime - 3_600_000; // 1 h before
   const closesAt = apptTime + 1_800_000; // 30 min after
 
   if (now < opensAt) return { state: "too_early", opensAt: new Date(opensAt) };
@@ -82,11 +83,10 @@ const getCheckInState = (apt: Appointment): CheckInState => {
   return { state: "available" };
 };
 
-// ─── Helper: format time ─────────────────────────────────────────────────────
 const fmtTime = (d: Date) =>
   d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 
-// ─── CheckIn Button + hint component ─────────────────────────────────────────
+// ─── CheckInButton ────────────────────────────────────────────────────────────
 const CheckInButton: React.FC<{
   apt: Appointment;
   onCheckIn: (apt: Appointment) => void;
@@ -97,7 +97,6 @@ const CheckInButton: React.FC<{
     return null;
 
   const isEnabled = ci.state === "available";
-
   const hintText =
     ci.state === "too_early"
       ? `Check-in opens at ${fmtTime(ci.opensAt)}`
@@ -107,7 +106,6 @@ const CheckInButton: React.FC<{
 
   return (
     <div className="flex flex-col items-center gap-0.5">
-      {/* ── Button ── */}
       <button
         disabled={!isEnabled}
         onClick={(e) => {
@@ -115,35 +113,29 @@ const CheckInButton: React.FC<{
           if (isEnabled) onCheckIn(apt);
         }}
         title={hintText ?? "Check in for your appointment"}
-        className={`
-          flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold
           transition-all border
           ${
             isEnabled
               ? "bg-green-500 hover:bg-green-600 text-white border-green-500 cursor-pointer shadow-sm hover:shadow-md"
               : "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-700 cursor-not-allowed opacity-70"
-          }
-        `}
+          }`}
       >
         <LogIn
           className={`w-3 h-3 ${isEnabled ? "text-white" : "text-gray-400"}`}
         />
         Check In
-        {/* Enabled / Disabled pill */}
         <span
           className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold leading-none
-            ${
-              isEnabled
-                ? "bg-green-600/30 text-green-100"
-                : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-            }
-          `}
+          ${
+            isEnabled
+              ? "bg-green-600/30 text-green-100"
+              : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+          }`}
         >
           {isEnabled ? "OPEN" : "LOCKED"}
         </span>
       </button>
-
-      {/* ── Hint text below button ── */}
       {hintText && (
         <span className="text-[10px] text-gray-400 dark:text-gray-500 text-center leading-tight max-w-25">
           {hintText}
@@ -153,7 +145,7 @@ const CheckInButton: React.FC<{
   );
 };
 
-// ─── Page ────────────────────────────────────────────────────────────────────
+// ─── Page ─
 export const MyAppointmentsPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -161,11 +153,15 @@ export const MyAppointmentsPage: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("");
+
+  // ── Modal states ──────────────────────────────────────────────────────────
   const [showBookModal, setShowBookModal] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
+  const [showReschedule, setShowReschedule] = useState(false);
   const [selectedApt, setSelectedApt] = useState<Appointment | null>(null);
+  const [rescheduleApt, setRescheduleApt] = useState<Appointment | null>(null);
 
-  // ─── Load ─────────────────────────────────────────────────────────────────
+  // ─── Load appointments ────────────────────────────────────────────────────
   const loadAppointments = useCallback(async () => {
     try {
       setLoading(true);
@@ -219,7 +215,7 @@ export const MyAppointmentsPage: React.FC = () => {
             My Appointments
           </h1>
           <p className="text-neutral dark:text-gray-400">
-            View, check-in, and manage your appointments
+            View, reschedule, check-in, and manage your appointments
           </p>
         </div>
         <Button
@@ -232,7 +228,7 @@ export const MyAppointmentsPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* ── Check-in Info Banner ────────────────────────────────────────────── */}
+      {/* ── Check-in info banner ────────────────────────────────────────────── */}
       <div
         className="mb-6 flex items-start gap-3 px-4 py-3 rounded-xl
                       bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
@@ -247,9 +243,8 @@ export const MyAppointmentsPage: React.FC = () => {
             active <span className="font-bold">1 hour before</span> your
             appointment and stays open until{" "}
             <span className="font-bold">30 minutes after</span> the scheduled
-            time. Outside this window, the button will appear{" "}
-            <span className="font-bold">locked</span> with a note showing
-            exactly when check-in opens.
+            time. The <span className="font-bold">Reschedule</span> button is
+            available for any SCHEDULED or CONFIRMED appointment.
           </p>
         </div>
       </div>
@@ -261,7 +256,7 @@ export const MyAppointmentsPage: React.FC = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral" />
             <input
               type="text"
-              placeholder="Search by doctor or complaint..."
+              placeholder="Search by doctor or complaint…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 dark:border-gray-700
@@ -272,23 +267,23 @@ export const MyAppointmentsPage: React.FC = () => {
           <div className="flex gap-2 flex-wrap items-center">
             <Filter className="w-4 h-4 text-neutral" />
             {STATUS_TABS.map((s) => (
-          <button
-  key={s || "all"}
-  onClick={() => setFilter(s)}
-  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 ${
-    filter === s
-      ? "bg-[#1976D2] text-white shadow-md transform scale-105" 
-      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-[#1976D2]/5 hover:text-[#1976D2] hover:border-[#1976D2]/30"
-  }`}
->
-  {s || "All"}
-</button>
+              <button
+                key={s || "all"}
+                onClick={() => setFilter(s)}
+                className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  filter === s
+                    ? "bg-primary text-white"
+                    : "bg-gray-100 dark:bg-gray-800 text-neutral hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                {s || "All"}
+              </button>
             ))}
           </div>
         </div>
       </Card>
 
-      {/* ── Appointment List ────────────────────────────────────────────────── */}
+      {/* ── Appointment list ────────────────────────────────────────────────── */}
       <Card
         title={`Appointments (${filtered.length})`}
         className="border-l-4 border-l-[#1976D2]"
@@ -306,6 +301,9 @@ export const MyAppointmentsPage: React.FC = () => {
             {filtered.map((apt) => {
               const style = getStyle(apt.status as AppointmentStatus);
               const canCancel = ["SCHEDULED", "CONFIRMED"].includes(apt.status);
+              const canReschedule = ["SCHEDULED", "CONFIRMED"].includes(
+                apt.status,
+              );
               const isConfirmed = !!apt.confirmedAt;
               const isPending = apt.status === "SCHEDULED" && !apt.confirmedAt;
               const ci = getCheckInState(apt);
@@ -314,7 +312,6 @@ export const MyAppointmentsPage: React.FC = () => {
                 ? `Dr. ${apt.doctor.firstName} ${apt.doctor.lastName}`
                 : "Any Available Doctor";
 
-              // Show the check-in section for scheduled/confirmed non-checked-in appointments
               const showCheckInSection =
                 ci.state !== "not_applicable" &&
                 ci.state !== "already_checked_in";
@@ -326,7 +323,7 @@ export const MyAppointmentsPage: React.FC = () => {
                              border-gray-100 dark:border-gray-800
                              hover:border-primary/30 transition-all"
                 >
-                  {/* ── Date block ─────────────────────────────────────────── */}
+                  {/* ── Date block ────────────────────────────────────────── */}
                   <div
                     className="flex flex-col items-center w-14 h-14
                                   bg-primary/10 border-l-4 border-l-primary
@@ -343,7 +340,7 @@ export const MyAppointmentsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* ── Info ───────────────────────────────────────────────── */}
+                  {/* ── Info ──────────────────────────────────────────────── */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h4 className="font-bold text-gray-900 dark:text-white">
@@ -395,12 +392,11 @@ export const MyAppointmentsPage: React.FC = () => {
 
                     {isConfirmed && (
                       <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-0.5">
-                        <CheckCircle className="w-3 h-3" />
-                        Confirmed by clinic
+                        <CheckCircle className="w-3 h-3" /> Confirmed by clinic
                       </p>
                     )}
 
-                    {/* ── Inline check-in window hint (below info, mobile-friendly) ── */}
+                    {/* Check-in window hints */}
                     {showCheckInSection && ci.state === "too_early" && (
                       <p
                         className="text-[11px] text-amber-600 dark:text-amber-400
@@ -408,7 +404,9 @@ export const MyAppointmentsPage: React.FC = () => {
                       >
                         <Clock className="w-3 h-3" />
                         Check-in opens at{" "}
-                        <span className="font-bold">{fmtTime(ci.opensAt)}</span>
+                        <span className="font-bold ml-1">
+                          {fmtTime(ci.opensAt)}
+                        </span>
                       </p>
                     )}
                     {showCheckInSection && ci.state === "too_late" && (
@@ -416,8 +414,8 @@ export const MyAppointmentsPage: React.FC = () => {
                         className="text-[11px] text-red-500 dark:text-red-400
                                     flex items-center gap-1 mt-1 font-medium"
                       >
-                        <XCircle className="w-3 h-3" />
-                        Check-in window has passed
+                        <XCircle className="w-3 h-3" /> Check-in window has
+                        passed
                       </p>
                     )}
                     {showCheckInSection && ci.state === "available" && (
@@ -425,24 +423,23 @@ export const MyAppointmentsPage: React.FC = () => {
                         className="text-[11px] text-green-600 dark:text-green-400
                                     flex items-center gap-1 mt-1 font-medium"
                       >
-                        <CheckCircle className="w-3 h-3" />
-                        Check-in is open now!
+                        <CheckCircle className="w-3 h-3" /> Check-in is open
+                        now!
                       </p>
                     )}
                   </div>
 
-                  {/* ── Status badge ───────────────────────────────────────── */}
+                  {/* ── Status badge ──────────────────────────────────────── */}
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold
-                                ${style.bg} ${style.text}`}
+                    className={`px-3 py-1 rounded-full text-xs font-bold ${style.bg} ${style.text}`}
                   >
                     {apt.status}
                   </span>
 
-                  {/* ── Actions ────────────────────────────────────────────── */}
+                  {/* ── Actions ───────────────────────────────────────────── */}
                   <div className="flex flex-col gap-2 shrink-0 items-end">
-                    <div className="flex gap-2 items-center">
-                      {/* Check-in button — always shown for eligible appointments */}
+                    <div className="flex gap-2 items-center flex-wrap justify-end">
+                      {/* Check-in */}
                       <CheckInButton
                         apt={apt}
                         onCheckIn={(a) => {
@@ -451,11 +448,32 @@ export const MyAppointmentsPage: React.FC = () => {
                         }}
                       />
 
+                      {/* Reschedule */}
+                      {canReschedule && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title="Reschedule appointment"
+                          className="border-amber-300 text-amber-600 hover:bg-amber-50
+                                     dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/20"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRescheduleApt(apt);
+                            setShowReschedule(true);
+                          }}
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </Button>
+                      )}
+
+                      {/* Cancel */}
                       {canCancel && (
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-red-300 text-red-500 hover:bg-red-50"
+                          title="Cancel appointment"
+                          className="border-red-300 text-red-500 hover:bg-red-50
+                                     dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleCancel(apt.id);
@@ -465,6 +483,7 @@ export const MyAppointmentsPage: React.FC = () => {
                         </Button>
                       )}
 
+                      {/* Detail chevron */}
                       <Button
                         variant="outline"
                         size="sm"
@@ -481,12 +500,13 @@ export const MyAppointmentsPage: React.FC = () => {
         )}
       </Card>
 
-      {/* ── Modals ──────────────────────────────────────────────────────────── */}
+      {/* ── Modals  */}
       <BookAppointmentModal
         isOpen={showBookModal}
         onClose={() => setShowBookModal(false)}
         onSuccess={loadAppointments}
       />
+
       <CheckInModal
         isOpen={showCheckIn}
         onClose={() => setShowCheckIn(false)}
@@ -495,6 +515,16 @@ export const MyAppointmentsPage: React.FC = () => {
           loadAppointments();
           navigate("/patient/queue-status");
         }}
+      />
+
+      <RescheduleAppointmentModal
+        isOpen={showReschedule}
+        onClose={() => {
+          setShowReschedule(false);
+          setRescheduleApt(null);
+        }}
+        appointment={rescheduleApt}
+        onSuccess={loadAppointments}
       />
     </div>
   );
