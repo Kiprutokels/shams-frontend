@@ -249,44 +249,49 @@ export const MyAppointmentsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Filters ─────────────────────────────────────────────────────────── */}
-      <Card className="mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral" />
-            <input
-              type="text"
-              placeholder="Search by doctor or complaint…"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 dark:border-gray-700
-                         rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-                         focus:outline-none focus:border-blue-500"
-            />
-          </div>
-          <div className="flex gap-2 flex-wrap items-center">
-            <Filter className="w-4 h-4 text-neutral" />
-            {STATUS_TABS.map((s) => (
-              <button
-                key={s || "all"}
-                onClick={() => setFilter(s)}
-                className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  filter === s
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 dark:bg-gray-800 text-neutral hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
-                {s || "All"}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Card>
+{/* ── Filters */}
+<Card className="mb-6 border-l-4 border-l-[#0D47A1]">
+  <div className="flex flex-col md:flex-row gap-4">
+    {/* Search Input with Hover & Focus Effects */}
+    <div className="relative flex-1 group">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral group-focus-within:text-[#0D47A1] transition-colors" />
+      <input
+        type="text"
+        placeholder="Search by doctor or complaint…"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 dark:border-gray-700
+                   rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm font-medium
+                   transition-all duration-200
+                   hover:border-[#0D47A1]/40 hover:bg-blue-50/20 dark:hover:bg-blue-900/5
+                   focus:outline-none focus:border-[#0D47A1] focus:ring-4 focus:ring-[#0D47A1]/10"
+      />
+    </div>
+
+    {/* Filter Buttons */}
+    <div className="flex gap-2 flex-wrap items-center">
+      <Filter className="w-4 h-4 text-[#0D47A1]" />
+      {STATUS_TABS.map((s) => (
+        <button
+          key={s || "all"}
+          onClick={() => setFilter(s)}
+          className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+            filter === s
+              ? "bg-[#0D47A1] text-white shadow-md shadow-blue-900/20"
+              : "bg-gray-100 dark:bg-gray-800 text-neutral hover:bg-[#0D47A1]/10 hover:text-[#0D47A1] dark:hover:bg-gray-700"
+          }`}
+        >
+          {s || "All"}
+        </button>
+      ))}
+    </div>
+  </div>
+</Card>
 
       {/* ── Appointment list ────────────────────────────────────────────────── */}
       <Card
         title={`Appointments (${filtered.length})`}
-        className="border-l-4 border-l-[#1976D2]"
+        className="border-l-4 border-l-[#0D47A1]"
       >
         {filtered.length === 0 ? (
           <div className="text-center py-16">

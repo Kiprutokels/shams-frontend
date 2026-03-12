@@ -169,51 +169,53 @@ export const AdminAppointmentsPage: React.FC = () => {
       </div>
 
       {/* ── Filters ────────────────────────────────────────────────────────── */}
-      <Card className="mb-4 sm:mb-6 border-l-4 border-l-navy">
-        <div className="flex flex-col gap-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search by patient or doctor name…"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 dark:border-gray-700 rounded-lg
-                         bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm
-                         focus:outline-none focus:border-navy transition-colors"
-            />
-          </div>
+<Card className="mb-4 sm:mb-6 border-l-4 border-l-[#0D47A1]">
+  <div className="flex flex-col gap-3">
+    {/* Search Input */}
+    <div className="relative group">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral pointer-events-none group-focus-within:text-[#0D47A1] transition-colors" />
+      <input
+        type="text"
+        placeholder="Search by patient or doctor name…"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 dark:border-gray-700 rounded-xl
+                   bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm font-medium
+                   transition-all duration-200
+                   hover:border-[#0D47A1]/40 hover:bg-blue-50/20 dark:hover:bg-blue-900/5
+                   focus:outline-none focus:border-[#0D47A1] focus:ring-4 focus:ring-[#0D47A1]/10"
+      />
+    </div>
 
-          {/* Status tabs — horizontally scrollable on mobile */}
-          <div
-            className="flex gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1
-                          [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-          >
-            {STATUS_TABS.map((s) => (
-              <button
-                key={s || "all"}
-                onClick={() => setStatusFilter(s)}
-                className={`
-                  px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap shrink-0
-                  ${
-                    statusFilter === s
-                      ? "bg-navy text-white shadow-sm"
-                      : "bg-gray-100 dark:bg-gray-800 text-neutral hover:bg-gray-200 dark:hover:bg-gray-700"
-                  }
-                `}
-              >
-                {TAB_LABELS[s]}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Card>
+    {/* Status tabs */}
+    <div
+      className="flex gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1
+                 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+    >
+      {STATUS_TABS.map((s) => (
+        <button
+          key={s || "all"}
+          onClick={() => setStatusFilter(s)}
+          className={`
+            px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap shrink-0 border-2
+            ${
+              statusFilter === s
+                ? "bg-[#0D47A1] border-[#0D47A1] text-white shadow-md shadow-blue-900/20"
+                : "bg-gray-100 dark:bg-gray-800 border-transparent text-neutral hover:bg-[#0D47A1]/10 hover:text-[#0D47A1] dark:hover:bg-gray-700"
+            }
+          `}
+        >
+          {TAB_LABELS[s]}
+        </button>
+      ))}
+    </div>
+  </div>
+</Card>
 
       {/* ── Appointments list ───────────────────────────────────────────────── */}
       <Card
         title={`Appointments (${filtered.length})`}
-        className="border-l-4 border-l-navy"
+        className="border-l-4 border-l-[#1976D2]"
       >
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-14 gap-3">

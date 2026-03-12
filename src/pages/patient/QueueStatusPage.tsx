@@ -215,80 +215,87 @@ export const QueueStatusPage: React.FC = () => {
             </div>
           )}
 
-          {/* ── Main grid ────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            {/* Queue ticket card — spans 2 cols on large screens */}
-            <Card
-              className={`lg:col-span-2 border-2 border-l-4
-                          ${getStatusConfig(queueData.status).bg}
-                          ${getStatusConfig(queueData.status).accent}`}
-            >
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                {/* Ticket icon */}
-                <div className="p-5 bg-primary/10 rounded-2xl shrink-0">
-                  <Ticket className="w-14 h-14 text-primary" />
-                </div>
+{/* ── Main grid ────────────────────────────────────────────────── */}
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+  {/* Queue ticket card — spans 2 cols on large screens */}
+  <Card
+    className={`lg:col-span-2 border-none shadow-[0_20px_50px_rgba(13,71,161,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)]
+                bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-950
+                rounded-[2rem] overflow-hidden relative group`}
+  >
+    {/* Subtle Background Accent */}
+    <div className="absolute top-0 left-0 w-2 h-full bg-[#0D47A1]" />
 
-                <div className="flex-1 min-w-0">
-                  {/* Queue number + badge */}
-                  <div className="flex flex-wrap items-baseline gap-3 mb-3">
-                    <span className="text-5xl font-extrabold text-gray-900 dark:text-white">
-                      #{queueData.queueNumber}
-                    </span>
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-bold border
-                                  ${getStatusConfig(queueData.status).bg}
-                                  ${getStatusConfig(queueData.status).text}`}
-                    >
-                      {getStatusConfig(queueData.status).label}
-                    </span>
-                  </div>
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8 p-8">
+      {/* Ticket icon with soft Navy glow */}
+      <div className="p-6 bg-[#0D47A1]/5 dark:bg-[#0D47A1]/20 rounded-3xl shrink-0 border border-[#0D47A1]/10 group-hover:scale-105 transition-transform duration-500">
+        <Ticket className="w-12 h-12 text-[#0D47A1] dark:text-blue-400" />
+      </div>
 
-                  {/* Detail rows */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-6 text-sm">
-                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                      <TrendingDown className="w-4 h-4 text-primary shrink-0" />
-                      Position in queue:{" "}
-                      <strong className="ml-1">#{queueData.position}</strong>
-                    </div>
+      <div className="flex-1 min-w-0">
+        {/* Queue number + badge */}
+        <div className="flex flex-wrap items-center gap-4 mb-4">
+          <span className="text-6xl font-black text-gray-900 dark:text-white tracking-tighter italic">
+            {queueData.queueNumber}
+          </span>
+          <span
+            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.15em] border-2
+                        ${getStatusConfig(queueData.status).bg} 
+                        ${getStatusConfig(queueData.status).text}
+                        ${getStatusConfig(queueData.status).accent}`}
+          >
+            {getStatusConfig(queueData.status).label}
+          </span>
+        </div>
 
-                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                      <Clock className="w-4 h-4 text-amber-500 shrink-0" />
-                      Est. wait:{" "}
-                      <strong className="ml-1">{displayWait} min</strong>
-                      {aiWaitTime && (
-                        <span className="text-xs text-purple-600 dark:text-purple-400 ml-1">
-                          (AI)
-                        </span>
-                      )}
-                    </div>
+        {/* Detail rows - Refined with semantic colors */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8">
+          <div className="flex items-center gap-3 text-sm font-medium text-gray-600 dark:text-gray-400">
+            <div className="w-8 h-8 rounded-lg bg-[#0D47A1]/5 flex items-center justify-center">
+              <TrendingDown className="w-4 h-4 text-[#0D47A1]" />
+            </div>
+            <span>Position: <strong className="text-gray-900 dark:text-white ml-1">{queueData.position}</strong></span>
+          </div>
 
-                    {queueData.department && (
-                      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <MapPin className="w-4 h-4 text-teal-500 shrink-0" />
-                        Dept:{" "}
-                        <strong className="ml-1">{queueData.department}</strong>
-                      </div>
-                    )}
+          <div className="flex items-center gap-3 text-sm font-medium text-gray-600 dark:text-gray-400">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/5 flex items-center justify-center">
+              <Clock className="w-4 h-4 text-amber-500" />
+            </div>
+            <span>Est. wait: <strong className="text-amber-600 ml-1">{displayWait} min</strong></span>
+            {aiWaitTime && (
+              <span className="text-[10px] font-black bg-purple-100 dark:bg-purple-900/30 text-purple-600 px-1.5 py-0.5 rounded ml-1">AI</span>
+            )}
+          </div>
 
-                    {queueData.doctorName && (
-                      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <User className="w-4 h-4 text-indigo-500 shrink-0" />
-                        <strong>{queueData.doctorName}</strong>
-                      </div>
-                    )}
-
-                    {queueData.roomNumber && (
-                      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <DoorOpen className="w-4 h-4 text-gray-500 shrink-0" />
-                        Room:{" "}
-                        <strong className="ml-1">{queueData.roomNumber}</strong>
-                      </div>
-                    )}
-                  </div>
-                </div>
+          {queueData.department && (
+            <div className="flex items-center gap-3 text-sm font-medium text-gray-600 dark:text-gray-400">
+              <div className="w-8 h-8 rounded-lg bg-[#26A69A]/5 flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-[#26A69A]" />
               </div>
-            </Card>
+              <span>Dept: <strong className="text-gray-900 dark:text-white ml-1">{queueData.department}</strong></span>
+            </div>
+          )}
+
+          {queueData.doctorName && (
+            <div className="flex items-center gap-3 text-sm font-medium text-gray-600 dark:text-gray-400">
+              <div className="w-8 h-8 rounded-lg bg-indigo-500/5 flex items-center justify-center">
+                <User className="w-4 h-4 text-indigo-500" />
+              </div>
+              <strong className="text-gray-900 dark:text-white">{queueData.doctorName}</strong>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Room Number Floating Badge */}
+      {queueData.roomNumber && (
+        <div className="sm:ml-auto flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-800 p-4 rounded-2xl min-w-[100px] border border-gray-200 dark:border-gray-700">
+          <span className="text-[10px] font-black text-neutral uppercase tracking-widest">Room</span>
+          <span className="text-2xl font-black text-[#0D47A1] dark:text-blue-400">{queueData.roomNumber}</span>
+        </div>
+      )}
+    </div>
+  </Card>
 
             {/* Instructions card */}
             <Card className="border-l-4 border-l-secondary">
@@ -332,7 +339,7 @@ export const QueueStatusPage: React.FC = () => {
               {/* Progress bar */}
               <div className="flex-1">
                 <div className="flex justify-between text-xs text-neutral dark:text-gray-400 mb-1.5">
-                  <span>Position #{queueData.position}</span>
+                  <span>Position {queueData.position}</span>
                   <span>~{displayWait} min remaining</span>
                 </div>
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -347,7 +354,7 @@ export const QueueStatusPage: React.FC = () => {
               <div className="flex gap-3 shrink-0">
                 <div className="flex flex-col items-center px-4 py-2 bg-primary/10 rounded-xl">
                   <span className="text-xl font-extrabold text-primary">
-                    #{queueData.position}
+                    {queueData.position}
                   </span>
                   <span className="text-xs text-neutral dark:text-gray-400">
                     in line
